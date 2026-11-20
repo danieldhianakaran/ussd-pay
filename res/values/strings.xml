@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">USSD Pay</string>
+    <string name="scan_qr">Scan UPI QR</string>
+    <string name="start_ussd">Start *99# session</string>
+    <string name="send_reply">Send reply</string>
+    <string name="autopilot_desc">Fills the UPI ID and amount from a scanned QR into your bank\'s *99# USSD dialog. It never fills the UPI PIN and never selects menu options.</string>
+</resources>
