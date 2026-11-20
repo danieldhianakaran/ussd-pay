@@ -81,12 +81,14 @@ public class AutoPilotService extends AccessibilityService {
             // A menu screen. Only ever pick "Send Money", the UPI option, or "Exit".
             value = pickMenuOption(prompt);
             if (value == null) {
+                log(prompt, "no rule - left to you");
                 lastPrompt = prompt;
                 lastActionAt = now;
                 return; // unrecognised menu: leave it to the user
             }
         } else if (lower.contains("pin")) {
             disarm();
+            log(prompt, "STOP (PIN must be typed by you)");
             toast("Enter the UPI PIN yourself");
             lastPrompt = prompt;
             lastActionAt = now;
@@ -119,6 +121,7 @@ public class AutoPilotService extends AccessibilityService {
 
         lastPrompt = prompt;
         lastActionAt = now;
+        log(prompt, "sent \"" + value + "\"");
         toast("Sent: " + value);
     }
 
@@ -165,6 +168,17 @@ public class AutoPilotService extends AccessibilityService {
 
     private void toast(String text) {
         Toast.makeText(this, text, Toast.LENGTH_SHORT).show();
+    }
+
+    /** Logs the dialog prompt plus the decision taken. */
+    private void log(String prompt, String action) {
+        String flat = prompt.replace('\n', ' ').trim();
+        if (flat.length() > 70) {
+            flat = flat.substring(0, 70) + "...";
+        }
+        UssdLog.add(android.text.format.DateFormat.format(
+                "HH:mm:ss", System.currentTimeMillis())
+                + "  AUTO  [" + flat + "] -> " + action);
     }
 
     private void disarm() {

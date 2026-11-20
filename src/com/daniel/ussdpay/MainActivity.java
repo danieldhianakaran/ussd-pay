@@ -28,12 +28,12 @@ public class MainActivity extends Activity {
     private TextView status;
     private TextView transcript;
     private TextView tvAutofillState;
-    private EditText etVpa, etAmount, etNote, etReply;
+    private EditText etVpa, etAmount, etNote;
     private SharedPreferences prefs;
 
     private TelephonyManager tm;
     private final Handler handler = new Handler(Looper.getMainLooper());
-    private final StringBuilder log = new StringBuilder();
+    private String lastShown = "";
     private boolean busy;          // a USSD request is in flight
     private Runnable busyTimeout;  // clears the lock if the network never answers
 
@@ -48,9 +48,26 @@ public class MainActivity extends Activity {
         etVpa = findViewById(R.id.etVpa);
         etAmount = findViewById(R.id.etAmount);
         etNote = findViewById(R.id.etNote);
-        etReply = findViewById(R.id.etReply);
 
         prefs = getSharedPreferences("ussdpay", MODE_PRIVATE);
+
+        // Prefill from a launch intent, e.g.
+        //   am start -n com.daniel.ussdpay/.MainActivity         //       --es vpa name@bank --es amount 25 --es note lunch
+        Intent launch = getIntent();
+        if (launch != null) {
+            String v = launch.getStringExtra("vpa");
+            String a = launch.getStringExtra("amount");
+            String n = launch.getStringExtra("note");
+            if (v != null) {
+                etVpa.setText(v);
+            }
+            if (a != null) {
+                etAmount.setText(a);
+            }
+            if (n != null) {
+                etNote.setText(n);
+            }
+        }
 
         Button autofill = findViewById(R.id.btnAutofill);
         autofill.setOnClickListener(new View.OnClickListener() {
@@ -94,24 +111,13 @@ public class MainActivity extends Activity {
             }
         });
 
-        Button send = findViewById(R.id.btnSend);
-        send.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String reply = etReply.getText().toString().trim();
-                if (TextUtils.isEmpty(reply)) {
-                    return;
-                }
-                confirmAndSend(reply, "Send \"" + reply + "\" to the USSD session?");
-            }
-        });
-
         Button clear = findViewById(R.id.btnClear);
         clear.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                log.setLength(0);
-                transcript.setText("No session yet.");
+                UssdLog.clear();
+                lastShown = "";
+                renderLog();
             }
         });
 
@@ -155,6 +161,8 @@ public class MainActivity extends Activity {
     protected void onResume() {
         super.onResume();
         updateAutofillState();
+        renderLog();
+        handler.post(refreshTick);
     }
 
     private boolean autofillEnabled() {
@@ -206,6 +214,12 @@ public class MainActivity extends Activity {
         lockFor(90);
 
         if ("*99#".equals(code)) {
+            String vpa = etVpa.getText().toString().trim();
+            String amt = etAmount.getText().toString().trim();
+            String note = etNote.getText().toString().trim();
+            append("TXN   to=" + (vpa.isEmpty() ? "-" : vpa)
+                    + "  amount=" + (amt.isEmpty() ? "-" : amt)
+                    + "  note=" + (note.isEmpty() ? "-" : note));
             prefs.edit()
                     .putString("vpa", etVpa.getText().toString().trim())
                     .putString("amount", etAmount.getText().toString().trim())
@@ -222,7 +236,7 @@ public class MainActivity extends Activity {
                                                       String request,
                                                       CharSequence response) {
                         append("<< " + (response == null ? "" : response.toString()));
-                        status.setText("Reply with a menu number");
+                        status.setText("USSD reply received");
                         unlock();
                     }
 
@@ -272,12 +286,40 @@ public class MainActivity extends Activity {
         }
     }
 
+    /** Adds a timestamped line to the shared log and refreshes the view. */
     private void append(String line) {
-        log.append(line).append('\n');
-        transcript.setText(log.toString());
-        int scroll = transcript.getLayout() == null ? 0 : transcript.getLayout().getLineTop(transcript.getLineCount()) - transcript.getHeight();
-        if (scroll > 0) {
-            transcript.scrollTo(0, scroll);
+        UssdLog.add(android.text.format.DateFormat.format("HH:mm:ss", System.currentTimeMillis())
+                + "  " + line);
+        renderLog();
+    }
+
+    private void renderLog() {
+        String text = UssdLog.dump();
+        if (text.equals(lastShown)) {
+            return;
         }
+        lastShown = text;
+        transcript.setText(text.isEmpty() ? "No session yet." : text);
+        if (transcript.getLayout() != null) {
+            int scroll = transcript.getLayout().getLineTop(transcript.getLineCount())
+                    - transcript.getHeight();
+            if (scroll > 0) {
+                transcript.scrollTo(0, scroll);
+            }
+        }
+    }
+
+    private final Runnable refreshTick = new Runnable() {
+        @Override
+        public void run() {
+            renderLog();
+            handler.postDelayed(this, 700);
+        }
+    };
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        handler.removeCallbacks(refreshTick);
     }
 }
