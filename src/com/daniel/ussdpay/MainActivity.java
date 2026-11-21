@@ -33,7 +33,7 @@ public class MainActivity extends Activity {
 
     private TelephonyManager tm;
     private final Handler handler = new Handler(Looper.getMainLooper());
-    private String lastShown = "";
+    private String lastShown = null;  // null forces a repaint
     private boolean busy;          // a USSD request is in flight
     private Runnable busyTimeout;  // clears the lock if the network never answers
 
@@ -116,7 +116,7 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View v) {
                 UssdLog.clear();
-                lastShown = "";
+                lastShown = null;
                 renderLog();
             }
         });
@@ -209,10 +209,6 @@ public class MainActivity extends Activity {
             requestPermissions(new String[]{Manifest.permission.CALL_PHONE}, REQ_PHONE);
             return;
         }
-        append(">> " + code);
-        status.setText("Sending " + code + " ...");
-        lockFor(90);
-
         if ("*99#".equals(code)) {
             String vpa = etVpa.getText().toString().trim();
             String amt = etAmount.getText().toString().trim();
@@ -221,12 +217,16 @@ public class MainActivity extends Activity {
                     + "  amount=" + (amt.isEmpty() ? "-" : amt)
                     + "  note=" + (note.isEmpty() ? "-" : note));
             prefs.edit()
-                    .putString("vpa", etVpa.getText().toString().trim())
-                    .putString("amount", etAmount.getText().toString().trim())
-                    .putString("note", etNote.getText().toString().trim())
+                    .putString("vpa", vpa)
+                    .putString("amount", amt)
+                    .putString("note", note)
                     .putBoolean("armed", autofillEnabled())
                     .apply();
         }
+
+        append(">> " + code);
+        status.setText("Sending " + code + " ...");
+        lockFor(90);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             try {
