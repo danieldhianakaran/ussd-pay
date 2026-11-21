@@ -8,6 +8,11 @@ The app scans the QR, pastes the UPI ID and amount into the operator's USSD
 dialog for you, and records a receipt you can show a vendor. **You always type
 the UPI PIN yourself.**
 
+Because `*99#` travels over the GSM signalling channel rather than the
+internet, this also works as an **emergency fallback when the data in your SIM
+is over** (or you have no data pack at all) — no mobile data or Wi-Fi is
+required to complete a payment.
+
 <p align="center">
   <img src="docs/main-screen.png" width="320" alt="USSD Pay main screen">
 </p>
