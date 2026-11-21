@@ -35,6 +35,8 @@ public class AutoPilotService extends AccessibilityService {
     private SharedPreferences prefs;
     private String lastPrompt = "";
     private long lastActionAt = 0;
+    private String lastSuccessPrompt = "";
+    private String bank = "";
 
     @Override
     protected void onServiceConnected() {
@@ -73,11 +75,22 @@ public class AutoPilotService extends AccessibilityService {
             return; // same screen, already handled
         }
 
+        // Record a successful payment exactly once per success screen.
+        if (SuccessParser.isSuccess(prompt) && !prompt.equals(lastSuccessPrompt)) {
+            lastSuccessPrompt = prompt;
+            recordSuccess(prompt);
+        }
+
         String lower = prompt.toLowerCase();
         boolean isMenu = lower.contains("select option") || optionCount(prompt) >= 2;
 
         String value = null;
         if (isMenu) {
+            String menuBank = SuccessParser.bankFromMenu(prompt);
+            if (!menuBank.isEmpty()) {
+                bank = menuBank;
+                prefs.edit().putString("bank", menuBank).apply();
+            }
             // A menu screen. Only ever pick "Send Money", the UPI option, or "Exit".
             value = pickMenuOption(prompt);
             if (value == null) {
@@ -87,7 +100,8 @@ public class AutoPilotService extends AccessibilityService {
                 return; // unrecognised menu: leave it to the user
             }
         } else if (lower.contains("pin")) {
-            disarm();
+            // Stay armed: the success screen comes *after* the PIN, and we must
+            // still see it to record the transaction. We simply never fill it.
             log(prompt, "STOP (PIN must be typed by you)");
             toast("Enter the UPI PIN yourself");
             lastPrompt = prompt;
@@ -123,6 +137,23 @@ public class AutoPilotService extends AccessibilityService {
         lastActionAt = now;
         log(prompt, "sent \"" + value + "\"");
         toast("Sent: " + value);
+        if (lower.contains("exit")) {
+            disarm();   // session finished
+        }
+    }
+
+    /** Stores the successful payment and flags it for the receipt dialog. */
+    private void recordSuccess(String prompt) {
+        SuccessParser.Result r = SuccessParser.parse(prompt);
+        String vpa = prefs.getString("vpa", "");
+        String amount = r.amount.isEmpty() ? prefs.getString("amount", "") : r.amount;
+        String note = prefs.getString("note", "");
+        String bankName = bank.isEmpty() ? prefs.getString("bank", "") : bank;
+        long id = new TxDb(this).insert(System.currentTimeMillis(), bankName, vpa,
+                r.payee, amount, note, r.ref, prompt);
+        prefs.edit().putLong("pending_tx", id).apply();
+        log(prompt, "SUCCESS recorded #" + id + " ref=" + r.ref);
+        toast("Payment recorded: Rs." + amount);
     }
 
     /** Picks the digit for "Send Money", else the first UPI option that is not the PIN. */

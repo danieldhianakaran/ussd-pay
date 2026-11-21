@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -111,6 +112,14 @@ public class MainActivity extends Activity {
             }
         });
 
+        Button history = findViewById(R.id.btnHistory);
+        history.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(MainActivity.this, HistoryActivity.class));
+            }
+        });
+
         Button clear = findViewById(R.id.btnClear);
         clear.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -162,6 +171,7 @@ public class MainActivity extends Activity {
         super.onResume();
         updateAutofillState();
         renderLog();
+        maybeShowReceipt();
         handler.post(refreshTick);
     }
 
@@ -291,6 +301,49 @@ public class MainActivity extends Activity {
         UssdLog.add(android.text.format.DateFormat.format("HH:mm:ss", System.currentTimeMillis())
                 + "  " + line);
         renderLog();
+    }
+
+    /** Shows the receipt once for a payment the service just recorded. */
+    private void maybeShowReceipt() {
+        final long id = prefs.getLong("pending_tx", 0);
+        if (id <= 0) {
+            return;
+        }
+        Cursor c = new TxDb(this).byId(id);
+        if (c == null || !c.moveToFirst()) {
+            if (c != null) {
+                c.close();
+            }
+            return;
+        }
+        final String receipt = TxFormat.receipt(
+                c.getLong(c.getColumnIndexOrThrow("ts")),
+                c.getString(c.getColumnIndexOrThrow("bank")),
+                c.getString(c.getColumnIndexOrThrow("vpa")),
+                c.getString(c.getColumnIndexOrThrow("payee")),
+                c.getString(c.getColumnIndexOrThrow("amount")),
+                c.getString(c.getColumnIndexOrThrow("ref")));
+        c.close();
+        prefs.edit().putLong("pending_tx", 0).apply();
+
+        new AlertDialog.Builder(this)
+                .setTitle("Payment successful")
+                .setMessage(receipt)
+                .setPositiveButton("Share", new android.content.DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(android.content.DialogInterface dialog, int which) {
+                        shareText(receipt);
+                    }
+                })
+                .setNegativeButton("Close", null)
+                .show();
+    }
+
+    private void shareText(String text) {
+        Intent i = new Intent(Intent.ACTION_SEND);
+        i.setType("text/plain");
+        i.putExtra(Intent.EXTRA_TEXT, text);
+        startActivity(Intent.createChooser(i, "Share receipt"));
     }
 
     private void renderLog() {
