@@ -58,4 +58,7 @@ apksigner sign --ks "$KS" --ks-pass pass:android --key-pass pass:android \
   --out "$OUT/ussdpay.apk" "$OUT/aligned.apk"
 
 echo "== done =="
-ls -lh "$OUT/ussdpay.apk"
+# also emit a shareable, versioned name
+VER=$(grep -o 'android:versionName="[^"]*"' "$ROOT/AndroidManifest.xml" | head -1 | cut -d'"' -f2)
+cp -f "$OUT/ussdpay.apk" "$OUT/USSD-Pay-$VER.apk"
+ls -lh "$OUT/ussdpay.apk" "$OUT/USSD-Pay-$VER.apk"

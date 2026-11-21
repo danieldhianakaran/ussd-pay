@@ -95,7 +95,9 @@ Expects under `~/toolchain`:
 | Android SDK (`platforms/android-30`, `build-tools/34.0.0`) | `~/toolchain/android-sdk` |
 | `zxing-core.jar` (dexed into the APK) | `~/toolchain/zxing-core.jar` |
 
-Output: `build/ussdpay.apk` (debug-signed).
+Output: `build/USSD-Pay-<version>.apk` (debug-signed, ready to share).
+`build/base.apk`, `aligned.apk` and `unsigned.apk` are intermediate files —
+**do not** distribute those, they will not install.
 
 ## Install
 
