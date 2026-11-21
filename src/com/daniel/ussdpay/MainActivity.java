@@ -18,8 +18,11 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ScrollView;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.graphics.drawable.ColorDrawable;
+import android.app.ActionBar;
 
 public class MainActivity extends Activity {
 
@@ -71,10 +74,12 @@ public class MainActivity extends Activity {
             }
         }
 
-        Button autofill = findViewById(R.id.btnAutofill);
+        Switch autofill = findViewById(R.id.swAutofill);
         autofill.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                // Accessibility can only be enabled by the user in Settings,
+                // so the switch is a shortcut there and a state indicator.
                 startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS));
                 Toast.makeText(MainActivity.this,
                         "Enable \"USSD Pay\" under Accessibility", Toast.LENGTH_LONG).show();
@@ -86,7 +91,7 @@ public class MainActivity extends Activity {
             status.setText("No telephony service on this device");
         }
 
-        Button scan = findViewById(R.id.btnScan);
+        View scan = findViewById(R.id.btnScan);
         scan.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -188,9 +193,13 @@ public class MainActivity extends Activity {
 
     private void updateAutofillState() {
         boolean on = autofillEnabled();
+        Switch sw = findViewById(R.id.swAutofill);
+        if (sw != null) {
+            sw.setChecked(on);
+        }
         tvAutofillState.setText(on
-                ? "Autofill: ON - fills UPI ID and amount, never the PIN"
-                : "Autofill: off - tap the button above to enable it");
+                ? "Autofill: ON - UPI ID and amount are typed for you"
+                : "Autofill: off - tap to enable");
     }
 
     private void confirmAndSend(final String code, String message) {
@@ -307,8 +316,8 @@ public class MainActivity extends Activity {
     /** Shows the receipt once for a payment the service just recorded. */
     private void maybeShowReceipt() {
         final long id = prefs.getLong("pending_tx", 0);
-        if (id <= 0) {
-            return;
+        if (id <= 0 || !hasWindowFocus()) {
+            return;   // never pop over the operator's USSD dialog
         }
         Cursor c = new TxDb(this).byId(id);
         if (c == null || !c.moveToFirst()) {
@@ -365,10 +374,35 @@ public class MainActivity extends Activity {
         }
     }
 
+    private int dotPhase;
+
+    /** Dots animate while a *99# request is in flight; bar turns blue. */
+    private void updateTitle() {
+        ActionBar bar = getActionBar();
+        if (busy) {
+            dotPhase = (dotPhase + 1) % 4;
+            StringBuilder t = new StringBuilder("USSD Pay");
+            for (int i = 0; i < dotPhase; i++) {
+                t.append(" \u2022");
+            }
+            setTitle(t.toString());
+            if (bar != null) {
+                bar.setBackgroundDrawable(new ColorDrawable(0xFF0D47A1));
+            }
+        } else {
+            setTitle("USSD Pay");
+            if (bar != null) {
+                bar.setBackgroundDrawable(new ColorDrawable(0xFF212121));
+            }
+        }
+    }
+
     private final Runnable refreshTick = new Runnable() {
         @Override
         public void run() {
             renderLog();
+            updateTitle();
+            maybeShowReceipt();
             handler.postDelayed(this, 700);
         }
     };

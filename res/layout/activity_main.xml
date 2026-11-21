@@ -18,11 +18,52 @@
             android:paddingBottom="8dp"
             android:text="Idle" />
 
-        <Button
-            android:id="@+id/btnScan"
+        <!-- Big square QR button, with the autofill toggle beside it -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/scan_qr" />
+            android:orientation="horizontal"
+            android:gravity="top">
+
+            <ImageButton
+                android:id="@+id/btnScan"
+                android:layout_width="140dp"
+                android:layout_height="140dp"
+                android:background="@drawable/qr_button_bg"
+                android:padding="36dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_qr"
+                android:contentDescription="Scan UPI QR" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:paddingLeft="12dp">
+
+                <Switch
+                    android:id="@+id/swAutofill"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Autofill"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:id="@+id/tvAutofillState"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="11sp"
+                    android:text="Autofill: off" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingTop="8dp"
+                    android:text="Tap the QR to scan. Autofill types the UPI ID and amount for you; you always enter the PIN."
+                    android:textSize="11sp" />
+            </LinearLayout>
+        </LinearLayout>
 
         <TextView
             android:layout_width="match_parent"
@@ -72,20 +113,6 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:text="@string/start_ussd" />
-
-        <Button
-            android:id="@+id/btnAutofill"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Enable USSD autofill" />
-
-        <TextView
-            android:id="@+id/tvAutofillState"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="11sp"
-            android:paddingBottom="4dp"
-            android:text="Autofill: off" />
 
         <TextView
             android:layout_width="match_parent"

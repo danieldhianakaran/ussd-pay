@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <!-- three finder patterns -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillType="evenOdd"
+        android:pathData="M2,2h7v7h-7z M3.2,3.2v4.6h4.6v-4.6z
+                          M15,2h7v7h-7z M16.2,3.2v4.6h4.6v-4.6z
+                          M2,15h7v7h-7z M3.2,16.2v4.6h4.6v-4.6z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M4,4h3v3h-3z M17,4h3v3h-3z M4,17h3v3h-3z" />
+
+    <!-- data modules -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M11,2h1.5v1.5h-1.5z M11,4.5h1.5v1.5h-1.5z M11,7h1.5v1.5h-1.5z
+                          M13.5,2h1.5v1.5h-1.5z M13.5,5.5h1.5v1.5h-1.5z
+                          M2,11h1.5v1.5h-1.5z M4.5,11h1.5v1.5h-1.5z M7,11h1.5v1.5h-1.5z
+                          M11,11h1.5v1.5h-1.5z M13.5,11h1.5v1.5h-1.5z M16,11h1.5v1.5h-1.5z
+                          M20.5,11h1.5v1.5h-1.5z
+                          M11,13.5h1.5v1.5h-1.5z M13.5,13.5h1.5v1.5h-1.5z
+                          M16,13.5h1.5v1.5h-1.5z M18.5,13.5h1.5v1.5h-1.5z M20.5,15h1.5v1.5h-1.5z
+                          M11,16h1.5v1.5h-1.5z M13.5,16h1.5v1.5h-1.5z M16,16h1.5v1.5h-1.5z
+                          M11,18.5h1.5v1.5h-1.5z M13.5,18.5h1.5v1.5h-1.5z
+                          M18.5,18.5h3v1.5h-3z M16,20.5h3v1.5h-3z" />
+</vector>
