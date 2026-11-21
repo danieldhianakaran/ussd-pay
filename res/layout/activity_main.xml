@@ -1,129 +1,149 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true">
+    android:orientation="vertical">
 
-    <LinearLayout
+    <!-- Form area: scrolls on its own -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="12dp">
+
+            <TextView
+                android:id="@+id/status"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="13sp"
+                android:paddingBottom="8dp"
+                android:text="Idle" />
+
+            <Button
+                android:id="@+id/btnScan"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/scan_qr" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="UPI ID (VPA)"
+                android:textSize="12sp"
+                android:paddingTop="10dp" />
+
+            <EditText
+                android:id="@+id/etVpa"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textNoSuggestions"
+                android:hint="name@bank" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Amount (INR)"
+                android:textSize="12sp"
+                android:paddingTop="10dp" />
+
+            <EditText
+                android:id="@+id/etAmount"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="numberDecimal"
+                android:hint="0.00" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Note"
+                android:textSize="12sp"
+                android:paddingTop="10dp" />
+
+            <EditText
+                android:id="@+id/etNote"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textNoSuggestions"
+                android:maxLength="40" />
+
+            <Button
+                android:id="@+id/btnStart"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="@string/start_ussd" />
+
+            <Button
+                android:id="@+id/btnAutofill"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Enable USSD autofill" />
+
+            <TextView
+                android:id="@+id/tvAutofillState"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="11sp"
+                android:paddingBottom="4dp"
+                android:text="Autofill: off" />
+
+            <Button
+                android:id="@+id/btnHistory"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Transaction history (30 days)" />
+
+            <Button
+                android:id="@+id/btnClear"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Clear log" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="12dp"
+                android:textSize="11sp"
+                android:text="USSD menus are controlled by your bank and telecom operator. This app only sends what you confirm." />
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- Log console: its own scrollable pane -->
+    <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="12dp">
+        android:background="#11000000"
+        android:paddingLeft="12dp"
+        android:paddingRight="12dp"
+        android:paddingTop="6dp"
+        android:paddingBottom="2dp"
+        android:text="USSD session"
+        android:textSize="12sp" />
 
-        <TextView
-            android:id="@+id/status"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="13sp"
-            android:paddingBottom="8dp"
-            android:text="Idle" />
-
-        <Button
-            android:id="@+id/btnScan"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/scan_qr" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="UPI ID (VPA)"
-            android:textSize="12sp"
-            android:paddingTop="10dp" />
-
-        <EditText
-            android:id="@+id/etVpa"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="textNoSuggestions"
-            android:hint="name@bank" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Amount (INR)"
-            android:textSize="12sp"
-            android:paddingTop="10dp" />
-
-        <EditText
-            android:id="@+id/etAmount"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="numberDecimal"
-            android:hint="0.00" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Note"
-            android:textSize="12sp"
-            android:paddingTop="10dp" />
-
-        <EditText
-            android:id="@+id/etNote"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="textNoSuggestions"
-            android:maxLength="40" />
-
-        <Button
-            android:id="@+id/btnStart"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:text="@string/start_ussd" />
-
-        <Button
-            android:id="@+id/btnAutofill"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Enable USSD autofill" />
-
-        <TextView
-            android:id="@+id/tvAutofillState"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="11sp"
-            android:paddingBottom="4dp"
-            android:text="Autofill: off" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="USSD session"
-            android:textSize="12sp"
-            android:paddingTop="14dp" />
+    <ScrollView
+        android:id="@+id/logScroll"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:background="#11000000"
+        android:scrollbarStyle="insideOverlay"
+        android:fadeScrollbars="false">
 
         <TextView
             android:id="@+id/tvTranscript"
             android:layout_width="match_parent"
-            android:layout_height="180dp"
-            android:background="#11000000"
+            android:layout_height="wrap_content"
             android:padding="8dp"
             android:textSize="12sp"
             android:typeface="monospace"
-            android:scrollbars="vertical"
             android:text="No session yet." />
-
-        <Button
-            android:id="@+id/btnHistory"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="Transaction history (30 days)" />
-
-        <Button
-            android:id="@+id/btnClear"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="Clear log" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingTop="12dp"
-            android:textSize="11sp"
-            android:text="USSD menus are controlled by your bank and telecom operator. This app only sends what you confirm." />
-    </LinearLayout>
-</ScrollView>
+    </ScrollView>
+</LinearLayout>

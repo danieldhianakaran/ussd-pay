@@ -17,6 +17,7 @@ import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -353,12 +354,14 @@ public class MainActivity extends Activity {
         }
         lastShown = text;
         transcript.setText(text.isEmpty() ? "No session yet." : text);
-        if (transcript.getLayout() != null) {
-            int scroll = transcript.getLayout().getLineTop(transcript.getLineCount())
-                    - transcript.getHeight();
-            if (scroll > 0) {
-                transcript.scrollTo(0, scroll);
-            }
+        final ScrollView logPane = findViewById(R.id.logScroll);
+        if (logPane != null) {
+            logPane.post(new Runnable() {
+                @Override
+                public void run() {
+                    logPane.fullScroll(View.FOCUS_DOWN);
+                }
+            });
         }
     }
 
