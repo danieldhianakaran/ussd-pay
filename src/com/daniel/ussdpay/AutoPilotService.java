@@ -37,6 +37,7 @@ public class AutoPilotService extends AccessibilityService {
     private long lastActionAt = 0;
     private String lastSuccessPrompt = "";
     private String bank = "";
+    private int missStreak = 0;
 
     @Override
     protected void onServiceConnected() {
@@ -66,9 +67,17 @@ public class AutoPilotService extends AccessibilityService {
         AccessibilityNodeInfo input = findById(root, ID_INPUT);
         AccessibilityNodeInfo send = findById(root, ID_SEND);
         if (msg == null || input == null || send == null) {
+            // Nodes can be unreadable for a moment while the dialog is being
+            // built, so only conclude the session is over after we have seen
+            // the dialog and then lost it repeatedly.
+            if (Session.seenDialog() && ++missStreak >= 3) {
+                Session.stop();
+            }
             return;
         }
+        missStreak = 0;
 
+        Session.setSeenDialog();
         String prompt = msg.getText() == null ? "" : msg.getText().toString();
         long now = SystemClock.elapsedRealtime();
         if (prompt.equals(lastPrompt) && now - lastActionAt < 2500) {
@@ -138,7 +147,8 @@ public class AutoPilotService extends AccessibilityService {
         log(prompt, "sent \"" + value + "\"");
         toast("Sent: " + value);
         if (lower.contains("exit")) {
-            disarm();   // session finished
+            disarm();          // session finished
+            Session.stop();
         }
     }
 

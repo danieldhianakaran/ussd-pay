@@ -230,6 +230,7 @@ public class MainActivity extends Activity {
             return;
         }
         if ("*99#".equals(code)) {
+            Session.start();
             String vpa = etVpa.getText().toString().trim();
             String amt = etAmount.getText().toString().trim();
             String note = etNote.getText().toString().trim();
@@ -266,6 +267,7 @@ public class MainActivity extends Activity {
                                                             int failureCode) {
                         append("<< FAILED, code " + failureCode);
                         status.setText("USSD failed (code " + failureCode + ")");
+                        Session.stop();   // nothing is open to wait for
                         unlock();
                     }
                 }, handler);
@@ -375,11 +377,49 @@ public class MainActivity extends Activity {
     }
 
     private int dotPhase;
+    private int focusTicks;
+    private int idleTicks;
+
+    /**
+     * Decides when a session is really over.
+     *
+     * If the operator dialog appeared, the session ends when focus comes back
+     * to us and stays. If it never appeared (a one-shot reply like
+     * "Welcome to *99#"), it ends shortly after the request completes.
+     */
+    private void settleSession() {
+        if (!Session.active()) {
+            focusTicks = 0;
+            idleTicks = 0;
+            return;
+        }
+        if (Session.seenDialog()) {
+            idleTicks = 0;
+            if (hasWindowFocus()) {
+                if (++focusTicks > 8) {   // ~5.6s
+                    Session.stop();
+                    focusTicks = 0;
+                }
+            } else {
+                focusTicks = 0;
+            }
+        } else {
+            focusTicks = 0;
+            if (!busy) {
+                if (++idleTicks > 14) {   // ~10s after the reply
+                    Session.stop();
+                    idleTicks = 0;
+                }
+            } else {
+                idleTicks = 0;
+            }
+        }
+    }
 
     /** Dots animate while a *99# request is in flight; bar turns blue. */
     private void updateTitle() {
         ActionBar bar = getActionBar();
-        if (busy) {
+        if (busy || Session.active()) {
             dotPhase = (dotPhase + 1) % 4;
             StringBuilder t = new StringBuilder("USSD Pay");
             for (int i = 0; i < dotPhase; i++) {
@@ -401,6 +441,7 @@ public class MainActivity extends Activity {
         @Override
         public void run() {
             renderLog();
+            settleSession();
             updateTitle();
             maybeShowReceipt();
             handler.postDelayed(this, 700);
