@@ -12,11 +12,11 @@ import android.widget.ListView;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Transaction history for the last 30 days; tap a row to share the receipt. */
+/** Transaction history for the last 30 days; tap a row to view its receipt. */
 public class HistoryActivity extends Activity {
 
     private final List<String> rows = new ArrayList<>();
-    private final List<String> receipts = new ArrayList<>();
+    private final List<Long> ids = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,42 +31,36 @@ public class HistoryActivity extends Activity {
         list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                share(receipts.get(position));
+                long txId = ids.get(position);
+                if (txId < 0) {
+                    return;   // "no transactions" placeholder
+                }
+                startActivity(new Intent(HistoryActivity.this, TxDetailActivity.class)
+                        .putExtra(TxDetailActivity.EXTRA_ID, txId));
             }
         });
     }
 
     private void load() {
         rows.clear();
-        receipts.clear();
+        ids.clear();
         Cursor c = new TxDb(this).recent();
         try {
             while (c.moveToNext()) {
+                long txId = c.getLong(c.getColumnIndexOrThrow("_id"));
                 long ts = c.getLong(c.getColumnIndexOrThrow("ts"));
                 String amount = c.getString(c.getColumnIndexOrThrow("amount"));
                 String vpa = c.getString(c.getColumnIndexOrThrow("vpa"));
                 String ref = c.getString(c.getColumnIndexOrThrow("ref"));
-                String bank = c.getString(c.getColumnIndexOrThrow("bank"));
-                String payee = c.getString(c.getColumnIndexOrThrow("payee"));
                 rows.add(TxFormat.row(ts, amount, vpa, ref));
-                receipts.add(TxFormat.receipt(ts, bank, vpa, payee, amount, ref));
+                ids.add(txId);
             }
         } finally {
             c.close();
         }
         if (rows.isEmpty()) {
             rows.add("No transactions in the last 30 days");
-            receipts.add("");
+            ids.add(-1L);
         }
-    }
-
-    private void share(String text) {
-        if (text == null || text.isEmpty()) {
-            return;
-        }
-        Intent i = new Intent(Intent.ACTION_SEND);
-        i.setType("text/plain");
-        i.putExtra(Intent.EXTRA_TEXT, text);
-        startActivity(Intent.createChooser(i, "Share receipt"));
     }
 }
